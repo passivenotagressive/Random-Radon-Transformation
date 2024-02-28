@@ -185,6 +185,31 @@ def generate_line_points(im_len, k, b, thickness=1):
             y = np.hstack([y, y_i])
     return x, y
 
+def generate_line_points_angle(im_len, r, theta, thickness=1):
+    x = np.array([], 'int64')
+    y = np.array([], 'int64')
+    x0 = y0 = im_len//2
+    
+    for i in range(0, thickness):
+        x_i = np.array([])
+        y_i = np.array([])
+        if (abs(theta - np.pi / 2) < 1e-4):
+            x_i = np.array([x0 + i] * im_len)
+            y_i = np.arange(0, im_len, 1)
+            x = np.hstack([x, x_i])
+            y = np.hstack([y, y_i])
+        else:
+            x_i = np.arange(0, im_len, 1)
+            y_i = np.array(y0 + r/(math.cos(theta)) + (x_i-x0)*math.tan(theta)).astype('int')+i
+            points = [(x_i[j], y_i[j]) for j in range(im_len)]
+            filtered_points = np.array(list(filter(lambda pixel: (pixel[1]>=0)*(pixel[1]<im_len), points)))
+            if (filtered_points.shape[0] != 0):
+                x_i = filtered_points[:, 0]
+                y_i = filtered_points[:, 1]
+                x = np.hstack([x, x_i])
+                y = np.hstack([y, y_i])
+    return x, y
+
 def get_clusters(thresh, radon):
     n = radon.shape[0]
     m = radon.shape[1]
