@@ -7,6 +7,9 @@ from random import randint
 
 
 def get_nonzero(image):
+    '''
+    Get index pairs of non-white pixels.
+    '''
     nonzero_x = np.nonzero(255 - image)[0]
     nonzero_y = np.nonzero(255 - image)[1]
     pairs = np.vstack((nonzero_x, nonzero_y)).T
@@ -14,6 +17,9 @@ def get_nonzero(image):
 
 
 def choice(pixels):
+    '''
+    Randomly choose two items at different indices from given array.
+    '''
     n = len(pixels)
     idx1 = randint(0, n - 1)
     pixel1 = pixels[idx1]
@@ -28,17 +34,17 @@ def random_radon_transformation(image, rho_steps = 220, theta_steps = 440, n_ite
 
     nonzero_pixels = get_nonzero(image)
 
-    a = image.shape[1]
-    b = image.shape[0]
+    width = image.shape[1]
+    height = image.shape[0]
 
-    n_rhos = 2 * rho_steps
-    n_thetas = theta_steps
+    n_rhos = 2 * rho_steps # Rho denotes offset 
+    n_thetas = theta_steps # Theta denotes slope angle
 
-    rho_max = np.sqrt(a ** 2 + b ** 2)
+    rho_max = np.sqrt(width ** 2 + height ** 2)
     rho_step = rho_max / rho_steps
     theta_step = np.pi / n_thetas
     
-    R = np.zeros((n_rhos, n_thetas), dtype='float64')
+    transformed = np.zeros((n_rhos, n_thetas), dtype='float64')
     for i in range(n_iter):
         pixel1, pixel2 = choice(nonzero_pixels)
 
@@ -58,13 +64,14 @@ def random_radon_transformation(image, rho_steps = 220, theta_steps = 440, n_ite
 
         theta_int = int(theta / theta_step)
         rho_int = int(rho / rho_step)
-        R[rho_int][theta_int] += 1
+        transformed[rho_int][theta_int] += 1
 
-    m = np.max(np.unique(R))
-    R *= (255/m)
-    return R
+    m = np.max(np.unique(transformed))
+    transformed *= (255/m)
+    return transformed
 
-def generate_line_points(im_len, k, b, thickness=1):
+# test example generation
+def generate_line_points(im_len, slope, offset, thickness=1):
 
     x = np.array([], 'int64')
     y = np.array([], 'int64')
@@ -72,9 +79,10 @@ def generate_line_points(im_len, k, b, thickness=1):
     for i in range(0, thickness):
         
         x_i = np.arange(0, im_len, 1)
-        y_i = k * x_i + b + i
+        y_i = slope * x_i + offset + i
         points = [(x_i[j], y_i[j]) for j in range(im_len)]
         filtered_points = np.array(list(filter(lambda x: (x[1] >= 0) * (x[1] < im_len), points)))
+
         if (filtered_points.shape[0] != 0):
             x_i = filtered_points[:, 0]
             y_i = filtered_points[:, 1]
@@ -83,9 +91,9 @@ def generate_line_points(im_len, k, b, thickness=1):
     return x, y
 
 im_len = 244
-x_points, y_points = generate_line_points(im_len, k = 2, b = 40, thickness=5)
+x_points, y_points = generate_line_points(im_len, slope = 2, offset = 40, thickness=5)
 
-x_points_2, y_points_2 = generate_line_points(im_len, k =-2, b =200, thickness=5)
+x_points_2, y_points_2 = generate_line_points(im_len, slope =-2, offset =200, thickness=5)
 img = np.zeros((im_len, im_len), dtype=np.uint8)
 img[x_points, y_points] = 255
 img[x_points_2, y_points_2] = 255
@@ -110,6 +118,9 @@ from random import randint
 import scipy.cluster.hierarchy as hcluster
 
 def get_nonzero(image):
+    '''
+    Get coordinate pairs of nonzero (non-white) pixels on given image
+    '''
     nonzero_x = np.nonzero(255 - image)[0]
     nonzero_y = np.nonzero(255 - image)[1]
     pairs = np.vstack((nonzero_x, nonzero_y)).T
@@ -117,32 +128,42 @@ def get_nonzero(image):
 
 
 def choice(pixels):
-    n = len(pixels)
-    idx1 = randint(0, n - 1)
+    '''
+    Randomly choose two items with different indices from given array.
+    '''
+    n_pixels = len(pixels)
+    idx1 = randint(0, n_pixels - 1)
     pixel1 = pixels[idx1]
-    idx2 = randint(0, n - 1)
+    idx2 = randint(0, n_pixels - 1)
+
     if (idx2 == idx2):
-        idx2 = (idx2 + 1) % n
+        idx2 = (idx2 + 1) % n_pixels
     pixel2 = pixels[idx2]
+
     return (pixel1, pixel2)
 
 
 def random_radon_transformation(image, rho_steps = 220, theta_steps = 440, n_iter = int(1e5)):
+    '''
+    Apply Radon transform to a black-and-white image by sampling random pairs of points.
 
+    Rho denotes the offset from coordinates' origin, Theta denotes slope angle [0;pi/2]
+    '''
     nonzero_pixels = get_nonzero(image)
 
-    a = image.shape[1]
-    b = image.shape[0]
+    height = image.shape[1]
+    width = image.shape[0]
 
     n_rhos = 2 * rho_steps
     n_thetas = theta_steps
 
-    rho_max = np.sqrt(a ** 2 + b ** 2)
+    rho_max = np.sqrt(height ** 2 + width ** 2)
     rho_step = rho_max / rho_steps
     theta_step = np.pi / n_thetas
     
-    R = np.zeros((n_rhos, n_thetas), dtype='float64')
+    transformed = np.zeros((n_rhos, n_thetas), dtype='float64')
     for i in range(n_iter):
+        # get two unique random points
         pixel1, pixel2 = choice(nonzero_pixels)
 
         x_1 = pixel1[0]
@@ -150,6 +171,7 @@ def random_radon_transformation(image, rho_steps = 220, theta_steps = 440, n_ite
         x_2 = pixel2[0]
         y_2 = pixel2[1]
 
+        # consider a line connecting them; represent it as (rho, theta) pair and increment respective accumulator
         theta = np.pi / 2
         if (y_1 != y_2):
             theta = np.arctan((x_2 - x_1) / (y_1 - y_2))
@@ -161,23 +183,26 @@ def random_radon_transformation(image, rho_steps = 220, theta_steps = 440, n_ite
 
         theta_int = int(theta / theta_step)
         rho_int = int(rho / rho_step)
-        R[rho_int][theta_int] += 1
+        transformed[rho_int][theta_int] += 1
 
-    m = np.max(np.unique(R))
-    R *= (255/m)
-    return R
+    transf_max = np.max(np.unique(transformed))
+    transformed *= (255/transf_max)
+    return transformed
 
-def generate_line_points(im_len, k, b, thickness=1):
-
+def generate_line_points(im_width, slope, offset, thickness=1):
+    '''
+    Generate list of points placed along line with given offset and slope
+    '''
     x = np.array([], 'int64')
     y = np.array([], 'int64')
     
     for i in range(0, thickness):
         
-        x_i = np.arange(0, im_len, 1)
-        y_i = k * x_i + b + i
-        points = [(x_i[j], y_i[j]) for j in range(im_len)]
-        filtered_points = np.array(list(filter(lambda x: (x[1] >= 0) * (x[1] < im_len), points)))
+        x_i = np.arange(0, im_width, 1)
+        y_i = slope * x_i + offset + i
+
+        points = [(x_i[j], y_i[j]) for j in range(im_width)]
+        filtered_points = np.array(list(filter(lambda x: (x[1] >= 0) * (x[1] < im_width), points))) # bounds check
         if (filtered_points.shape[0] != 0):
             x_i = filtered_points[:, 0]
             y_i = filtered_points[:, 1]
@@ -185,7 +210,10 @@ def generate_line_points(im_len, k, b, thickness=1):
             y = np.hstack([y, y_i])
     return x, y
 
-def generate_line_points_angle(im_len, r, theta, thickness=1):
+def generate_line_points_angle(im_len, offset, slope_theta, thickness=1):
+    '''
+    Generate list of points placed along line with given offset and angle
+    '''
     x = np.array([], 'int64')
     y = np.array([], 'int64')
     x0 = y0 = im_len//2
@@ -193,16 +221,16 @@ def generate_line_points_angle(im_len, r, theta, thickness=1):
     for i in range(0, thickness):
         x_i = np.array([])
         y_i = np.array([])
-        if (abs(theta - np.pi / 2) < 1e-4):
+        if (abs(slope_theta - np.pi / 2) < 1e-4):
             x_i = np.array([x0 + i] * im_len)
             y_i = np.arange(0, im_len, 1)
             x = np.hstack([x, x_i])
             y = np.hstack([y, y_i])
         else:
             x_i = np.arange(0, im_len, 1)
-            y_i = np.array(y0 + r/(math.cos(theta)) + (x_i-x0)*math.tan(theta)).astype('int')+i
+            y_i = np.array(y0 + offset/(math.cos(slope_theta)) + (x_i-x0)*math.tan(slope_theta)).astype('int')+i
             points = [(x_i[j], y_i[j]) for j in range(im_len)]
-            filtered_points = np.array(list(filter(lambda pixel: (pixel[1]>=0)*(pixel[1]<im_len), points)))
+            filtered_points = np.array(list(filter(lambda pixel: (pixel[1]>=0)*(pixel[1]<im_len), points))) # bounds check
             if (filtered_points.shape[0] != 0):
                 x_i = filtered_points[:, 0]
                 y_i = filtered_points[:, 1]
@@ -210,33 +238,47 @@ def generate_line_points_angle(im_len, r, theta, thickness=1):
                 y = np.hstack([y, y_i])
     return x, y
 
-def get_clusters(thresh, radon):
-    n = radon.shape[0]
-    m = radon.shape[1]
-    coord = list(np.array([[ (i, j, radon[i][j] / 255) for j in range(0, m)] for i in range(0, n)]).reshape(n * m, 3))
-    coord = np.array(list(filter(lambda x: x[2] > 1e-3, coord)))
-    if (coord.shape[0] < 2):
-        return [coord]
-    
-    clusters = hcluster.fclusterdata(coord, thresh, criterion="distance")
+def get_clusters(cluster_thresh, radon, nonzero_thresh=1e-3):
+    '''
+    Group Radon transform output by clusters
+    '''
+    rad_width  = radon.shape[0]
+    rad_height = radon.shape[1]
+
+    # Generate (x, y, value) triples for each 
+    coord_val = np.array([[ (i, j, radon[i][j] / 255) for j in range(0, rad_height)] for i in range(0, rad_width)])
+    coord_val = list(coord_val.reshape(rad_width * rad_height, 3))
+    # Exclude points with zero or close to zero values
+    coord_val = np.array(list(filter(lambda x: x[2] > nonzero_thresh, coord_val)))
+
+    if (coord_val.shape[0] < 2):
+        return [coord_val]
+    # assign each point to a cluster; thresh denotes maximum cluster radius
+    clusters = hcluster.fclusterdata(coord_val, cluster_thresh, criterion="distance")
     clusters_types = set(clusters)
-    for i in range(0, len(coord)):
-        coord[i][2] = clusters[i]
+
+    # group points by clusters
+    for i in range(0, len(coord_val)):
+        coord_val[i][2] = clusters[i]
     final_clusters = []
     for i in clusters_types:
-        filtered = np.array(list(filter(lambda x: x[2] == i, coord)))
+        filtered = np.array(list(filter(lambda x: x[2] == i, coord_val)))
         final_clusters.append(filtered)
     return final_clusters
 
-def get_lines(clusters, img, steps):
-    a = img.shape[1]
-    b = img.shape[0]
-    rho_max = np.sqrt(a ** 2 + b ** 2)
-    n_thetas = 2 * steps
-    rho_steps = steps
+def get_lines(clusters):
+    '''
+    Detect lines on clusterized Radon transform output
+    '''
+    # height = img.shape[1]
+    # width = img.shape[0]
+    # rho_max = np.sqrt(height ** 2 + width ** 2)
+    # n_thetas = 2 * steps
+    # rho_steps = steps
 
-    rho_step = rho_max / rho_steps
-    theta_step = np.pi / n_thetas
+    # rho_step = rho_max / rho_steps
+    # theta_step = np.pi / n_thetas
+    
     n = len(clusters)
     rhos = [0] * n
     thetas = [0] * n
@@ -245,10 +287,19 @@ def get_lines(clusters, img, steps):
         thetas[i] = np.mean(clusters[i], axis=0)[1]
     return rhos, thetas
 
-im_len = 244
-x_points, y_points = generate_line_points(im_len, k = 2, b = 40, thickness=5)
+def detect_straight_lines(img, rho_steps, theta_steps, cluster_ident_thres, cluster_size_thres, n_iter=int(1e4)):
+    '''
+    Detect straight lines on an image using randomized Radon transform.
+    '''
+    radon = random_radon_transformation(img, rho_steps=rho_steps, theta_steps=theta_steps, n_iter=n_iter)
+    radon_clusterized = get_clusters(cluster_size_thres, radon, cluster_ident_thres)
+    return get_lines(radon_clusterized)
 
-x_points_2, y_points_2 = generate_line_points(im_len, k =-2, b =200, thickness=5)
+
+im_len = 244
+x_points, y_points = generate_line_points(im_len, slope = 2, offset = 40, thickness=5)
+
+x_points_2, y_points_2 = generate_line_points(im_len, slope =-2, offset =200, thickness=5)
 img = np.zeros((im_len, im_len), dtype=np.uint8)
 img[x_points, y_points] = 255
 img[x_points_2, y_points_2] = 255
