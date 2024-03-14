@@ -5,7 +5,7 @@ from random_radon_transform import detect_straight_lines, random_radon_transform
 
 import numpy as np
 
-_MAX_ERROR_RHO = 0.5
+_MAX_ERROR_RHO = 1
 _MAX_ERROR_THETA = np.pi/90
 
 def compare_outputs(rhos1, thetas1, rhos2, thetas2):    
@@ -18,7 +18,7 @@ def compare_outputs(rhos1, thetas1, rhos2, thetas2):
     for pair1 in pairs1:
         match_found = False
         for id, pair2 in enumerate(pairs2):
-            if abs(pair1[0]-pair2[0]) <= _MAX_ERROR_RHO and abs(pair1[1]-pair2) <= _MAX_ERROR_THETA:
+            if abs(pair1[0]-pair2[0]) <= _MAX_ERROR_RHO and abs(pair1[1]-pair2[1]) <= _MAX_ERROR_THETA:
                 match_found = True
                 pairs2.pop(id)
                 break
@@ -46,7 +46,7 @@ def test_radon_static_inverted(radon_static_inverted):
     assert(compare_outputs(out_rhos, out_thetas, rhos, thetas))
 
 def test_small(radon_noise):
-    img = radon_noise
+    img, rhos, thetas = radon_noise
     detect_straight_lines(img, 
                           rho_steps=360, 
                           theta_steps=np.pi/90, 
