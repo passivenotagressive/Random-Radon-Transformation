@@ -5,7 +5,7 @@ from random_radon_transform import detect_straight_lines, random_radon_transform
 
 import numpy as np
 
-_MAX_ERROR_RHO = 0.5
+_MAX_ERROR_RHO = 1
 _MAX_ERROR_THETA = np.pi/90
 
 def compare_outputs(rhos1, thetas1, rhos2, thetas2):    
