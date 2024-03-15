@@ -29,7 +29,7 @@ def choice(pixels):
     return (pixel1, pixel2)
 
 
-def random_radon_transformation(image, rho_steps = 220, theta_steps = 440, n_iter = int(1e5)):
+def random_radon_transformation(image, rho_steps = 220, theta_steps = 440, n_iter = int(1e4)):
     '''
     Apply Radon transform to a black-and-white image by sampling random pairs of points.
 
@@ -136,53 +136,102 @@ def detect_straight_lines(img, rho_steps, theta_steps, cluster_ident_thres, clus
     return get_lines(radon_clusterized)
 
 # test example generation
-def generate_line_points(im_width, slope, offset, thickness=1, noise=0.0):
+def generate_line_points(im_width, im_height, offset, slope, thickness=1, noise=0.0):
     '''
     Generate list of points placed along line with given offset and slope
+    ()
     '''
-    x = np.array([], 'int64')
-    y = np.array([], 'int64')
+    x = np.array([], 'int32')
+    y = np.array([], 'int32')
+
+    x0 = im_width  // 2 # Origin x, y
+    y0 = im_height // 2
     
     for i in range(0, thickness):
+
+        offset_back_projection = offset * np.sqrt(1 + slope**2) * np.sign(slope)
         
         x_i = np.arange(0, im_width, 1)
-        y_i = slope * x_i + offset + i + (np.random.normal(0.0, 1.0, x_i.shape)*noise if noise != 0.0 else 0.0)
-
+        y_i = y0 + (slope * (x_i - x0)) + i + offset_back_projection \
+            + np.int32(np.random.normal(0.0, 1.0, x_i.shape)*noise if noise != 0.0 else 0)
+        
+        if noise != 0.0:
+            x_i += np.int32(np.random.normal(0.0, 1.0, x_i.shape)*noise)
+        
         points = [(x_i[j], y_i[j]) for j in range(im_width)]
-        filtered_points = np.array(list(filter(lambda x: (x[1] >= 0) * (x[1] < im_width), points))) # bounds check
+        filtered_points = np.array(list(filter(lambda pixel: pixel[0] >= 0 and pixel[0] < im_width and \
+                                                             pixel[1] >= 0 and pixel[1] < im_height, points))) # bounds check
+
         if (filtered_points.shape[0] != 0):
             x_i = filtered_points[:, 0]
             y_i = filtered_points[:, 1]
             x = np.hstack([x, x_i])
             y = np.hstack([y, y_i])
-    return x, y
+    return np.int32(x), np.int32(y)
 
 
-def generate_line_points_angle(im_len, offset, slope_theta, thickness=1, noise=0.0):
+# def generate_line_points_angle(im_len, offset, theta, thickness=1, noise=0.0):
+#     '''
+#     Generate list of points placed along line with given offset and angle
+#     '''
+#     x = np.array([], 'int64')
+#     y = np.array([], 'int64')
+#     x0 = y0 = im_len//2
+    
+#     for i in range(0, thickness):
+#         x_i = np.array([])
+#         y_i = np.array([])
+#         if (abs(theta - np.pi / 2) < 1e-4):
+#             x_i = np.array([x0 + i] * im_len)
+#             y_i = np.arange(0, im_len, 1)
+#             x = np.hstack([x, x_i])
+#             y = np.hstack([y, y_i])
+#         else:
+#             x_i = np.arange(0, im_len, 1) \
+#                 + np.int32(np.random.normal(0.0, 1.0, x_i.shape)*noise) if noise < 1e-2 else 0
+#             y_i = np.array(y0 + offset/(math.cos(theta)) + (x_i-x0)*math.tan(theta)).astype('int')+i \
+#                 + np.int32(np.random.normal(0.0, 1.0, x_i.shape)*noise) if noise < 1e-2 else 0
+            
+#             points = [(x_i[j], y_i[j]) for j in range(im_len)]
+#             filtered_points = np.array(list(filter(lambda pixel: (pixel[1]>=0)*(pixel[1]<im_len), points))) # bounds check
+
+#             if (filtered_points.shape[0] != 0):
+#                 x_i = filtered_points[:, 0]
+#                 y_i = filtered_points[:, 1]
+#                 x = np.hstack([x, x_i])
+#                 y = np.hstack([y, y_i])
+#     return x, y
+
+def generate_line_points_angle(im_width, im_height, offset, theta, thickness=1, noise=0.0):
     '''
     Generate list of points placed along line with given offset and angle
     '''
-    x = np.array([], 'int64')
-    y = np.array([], 'int64')
-    x0 = y0 = im_len//2
-    
-    for i in range(0, thickness):
-        x_i = np.array([])
-        y_i = np.array([])
-        if (abs(slope_theta - np.pi / 2) < 1e-4):
-            x_i = np.array([x0 + i] * im_len)
-            y_i = np.arange(0, im_len, 1)
-            x = np.hstack([x, x_i])
-            y = np.hstack([y, y_i])
-        else:
-            x_i = np.arange(0, im_len, 1)
-            y_i = np.array(y0 + offset/(math.cos(slope_theta)) + (x_i-x0)*math.tan(slope_theta)).astype('int')+i \
-                                                               + (np.random.normal(0.0, 1.0, x_i.shape)*noise if noise != 0.0 else 0.0)
-            points = [(x_i[j], y_i[j]) for j in range(im_len)]
-            filtered_points = np.array(list(filter(lambda pixel: (pixel[1]>=0)*(pixel[1]<im_len), points))) # bounds check
-            if (filtered_points.shape[0] != 0):
-                x_i = filtered_points[:, 0]
-                y_i = filtered_points[:, 1]
-                x = np.hstack([x, x_i])
-                y = np.hstack([y, y_i])
-    return x, y
+    _ROUND_TO_VERTICAL_THRESHOLD = 1e-2
+
+    if abs((theta - np.pi/2) % np.pi) < _ROUND_TO_VERTICAL_THRESHOLD: # vertical line
+        x = np.array([], dtype='int32')
+        y = np.array([], dtype='int32')
+
+        x0 = im_width // 2 # Origin x
+
+        for i in range(0, thickness):
+            x_i = np.array([x0 + i] * im_width) + offset 
+            y_i = np.arange(0, im_width, 1) \
+                + np.int32(np.random.normal(0.0, 1.0, x_i.shape)*noise) if noise != 0.0 else 0
+            
+            if noise != 0.0:
+                x_i += np.int32(np.random.normal(0.0, 1.0, im_width)*noise)
+            
+            points = [(x_i[j], y_i[j]) for j in range(im_width)]
+            filtered_points = np.array(list(filter(lambda pixel: pixel[0] >= 0 and pixel[0] < im_width and \
+                                                                 pixel[1] >= 0 and pixel[1] < im_height, points))) # bounds check
+
+            if filtered_points.shape[0] != 0:
+                x = np.hstack([x, filtered_points[:, 0]])
+                y = np.hstack([y, filtered_points[:, 1]])
+        return np.int32(x), np.int32(y)
+    else: # Any other angle
+        return generate_line_points(im_width, im_height, offset, slope=np.tan(theta), thickness=thickness, noise=noise)
+
+
+
