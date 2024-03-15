@@ -8,7 +8,7 @@ def radon_static():
     im_len = 256
     img = np.full((im_len, im_len), fill_value=255, dtype=np.uint8)
 
-    rhos = [40, 200]
+    rhos = [20, 80]
     thetas = [30*np.pi/180, 60*np.pi/180]
 
     for rho, theta in zip(rhos, thetas):
@@ -18,22 +18,35 @@ def radon_static():
     return img, rhos, thetas
 
 @pytest.fixture
+def radon_static_empty():
+    im_len = 256
+    img = np.full((im_len, im_len), fill_value=255, dtype=np.uint8)
+
+    rhos = []
+    thetas = []
+
+    return img, rhos, thetas
+
+@pytest.fixture
 def radon_static_inverted(radon_static):
     img, rhos, thetas = radon_static
     img = 255 - img
     return img, rhos, thetas
 
-@pytest.fixture
-def radon_static_nonsquare():
-    img = np.full((256, 190), fill_value=255)
 
-    rhos = [40, 200]
+@pytest.fixture
+def radon_static_rect():
+    im_height, im_width = 255, 129
+    img = np.full((im_height, im_width), fill_value=255, dtype=np.uint8)
+
+    rhos = [20, 80]
     thetas = [30*np.pi/180, 60*np.pi/180]
 
     for rho, theta in zip(rhos, thetas):
-        x_points, y_points = generate_line_points_angle(img.shape[0], img.shape[1], theta=theta, offset=rho, thickness=5)
+        x_points, y_points = generate_line_points_angle(im_height, im_width, theta=theta, offset=rho, thickness=5)
         img[x_points, y_points] = 0
 
+    return img, rhos, thetas
 
 @pytest.fixture
 def radon_dynamic_random():
@@ -74,6 +87,5 @@ def radon_noise():
 
 @pytest.fixture
 def tiny_image():
-    array = np.array([[255, 0],
-                      [0, 255]])
+    array = np.zeros((1, 1))
     return array, [], []
