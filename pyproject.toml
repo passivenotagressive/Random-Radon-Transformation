@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "random-radon-transformation"
+version = "0.1.0"
+description = ""
+authors = ["Alina <s20d_kuznetsova@179.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
