@@ -1,6 +1,6 @@
 import click
 
-from . import __version__
+from . import __version__, random_radon_transform
 
 
 @click.command()
