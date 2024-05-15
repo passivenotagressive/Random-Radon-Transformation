@@ -2,7 +2,7 @@
 name = "random-radon-transformation"
 version = "0.1.0"
 description = ""
-authors = ["Alina <s20d_kuznetsova@179.ru>"]
+authors = ["Alina Kuznetsova"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -11,6 +11,7 @@ click = "^8.1.7"
 
 
 numpy = "*"
+opencv-python = "*"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
 
