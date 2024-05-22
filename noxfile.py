@@ -2,7 +2,7 @@
 import nox
 
 nox.options.sessions = "lint", "tests"
-locations = "src",
+locations = "src", "tests", "noxfile.py", "docs/conf.py"
 
 @nox.session(python=["3.8"])
 def tests(session):
@@ -35,3 +35,10 @@ def xdoctest(session) -> None:
     session.run("poetry", "install", "--no-dev", external=True)
     session.install("xdoctest")
     session.run("python", "-m", "xdoctest", package, *args)
+
+@nox.session(python="3.8")
+def docs(session) -> None:
+    """Build the documentation."""
+    session.run("poetry", "install", "--no-dev", external=True)
+    session.install("sphinx", "sphinx-autodoc-typehints")
+    session.run("sphinx-build", "docs", "docs/_build")
