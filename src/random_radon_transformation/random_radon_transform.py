@@ -158,7 +158,7 @@ def revert_radon(img: np.ndarray, rrt: np.ndarray) -> None:
                 cv.line(img, (x_points[0], y_points[0]), (x_points[-1], y_points[-1]), (0, 0, 255), 1)
 
 
-def visualisation(img: np.ndarray, rrt: np.ndarray, name: str) -> None:
+def visualisation(img: np.ndarray, rrt: np.ndarray, name: str, path: str) -> None:
     """
     Save files with pictures of initial picture, rrt picture and visualized lines got from rrt.
 
@@ -169,11 +169,13 @@ def visualisation(img: np.ndarray, rrt: np.ndarray, name: str) -> None:
             random radon transformation picture
         name : str
             specific name of the file
+        path : str
+            path to the output file
 
     """
-    cv.imwrite("pics/initial_pic_" + name + ".png", img)
-    cv.imwrite("pics/rrt_" + name + ".png", 255 - rrt)
+    cv.imwrite(path + "/initial_pic_" + name + ".png", img)
+    cv.imwrite(path + "/rrt_" + name + ".png", 255 - rrt)
     filtered_rrt = (rrt > 100).astype(int) * 255
-    img_after = cv.imread("pics/initial_pic_" + name + ".png")
+    img_after = cv.imread(path + "/initial_pic_" + name + ".png")
     revert_radon(img_after, filtered_rrt)
-    cv.imwrite("pics/result_" + name + ".png", img_after)
+    cv.imwrite(path + "/result_" + name + ".png", img_after)

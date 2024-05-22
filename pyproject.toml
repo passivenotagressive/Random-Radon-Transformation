@@ -32,7 +32,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-random-radon-transformation = "random_radon_transformation.random_radon_transform:main"
+random-radon-transformation = "random_radon_transformation.console:main"
 
 
 [tool.coverage.paths]
