@@ -1,27 +1,72 @@
-import numpy as np
-import math
+"""Perform random radon transformation."""
+
 from random import randint
 
+import numpy as np
 
-def get_nonzero(image):
+import cv2 as cv
+
+
+def get_nonzero(image: np.ndarray) -> np.ndarray:
+    """
+    Finds all non-zero pixels (white) on the image.
+
+    Args:
+        image : np.ndarray
+            initial image
+
+    Returns:
+        pixels : np.ndarray
+            list of non-zero pixel pairs
+    """
     nonzero_x = np.nonzero(255 - image)[0]
     nonzero_y = np.nonzero(255 - image)[1]
     pairs = np.vstack((nonzero_x, nonzero_y)).T
     return pairs
 
 
-def choice(pixels):
+def choice(pixels: np.ndarray) -> tuple:
+    """
+
+    Give random pair of different nonzero pixels from given list.
+
+    Args:
+        pixels : np.ndarray
+            list of pixels given by pair of coordinates
+
+    Returns:
+        pixel1, pixel2 : tuple[list, list]
+            pair of pixels
+    """
     n = len(pixels)
     idx1 = randint(0, n - 1)
     pixel1 = pixels[idx1]
     idx2 = randint(0, n - 1)
-    if (idx2 == idx2):
+    if idx1 == idx2:
         idx2 = (idx2 + 1) % n
     pixel2 = pixels[idx2]
-    return (pixel1, pixel2)
+    return pixel1, pixel2
 
 
-def random_radon_transformation(image, rho_steps=220, theta_steps=440, n_iter=int(1e5)):
+def transform(image: np.ndarray, rho_steps: int = 220, theta_steps: int = 440, n_iter: int = int(1e5)) -> np.ndarray:
+    """
+
+    Perform random radon transformation of given image.
+
+    Args:
+        image : np.ndarray
+            initial picture
+        rho_steps : int
+            step by rho for sampling
+        theta_steps : int
+            step by theta for sampling
+        n_iter : int
+            number of random iterations
+
+    Returns:
+        R : np.ndarray
+            result of the transformation
+    """
     nonzero_pixels = get_nonzero(image)
 
     a = image.shape[1]
@@ -44,9 +89,9 @@ def random_radon_transformation(image, rho_steps=220, theta_steps=440, n_iter=in
         y_2 = pixel2[1]
 
         theta = np.pi / 2
-        if (y_1 != y_2):
+        if y_1 != y_2:
             theta = np.arctan((x_2 - x_1) / (y_1 - y_2))
-        if (theta < 0):
+        if theta < 0:
             theta = np.pi + theta
         rho = x_1 * np.cos(theta) + y_1 * np.sin(theta)
 
@@ -61,46 +106,74 @@ def random_radon_transformation(image, rho_steps=220, theta_steps=440, n_iter=in
     return R
 
 
-def generate_line_points(im_len, k, b, thickness=1):
-    x = np.array([], 'int64')
-    y = np.array([], 'int64')
+def create_line(img: np.ndarray, a: int, b: int) -> tuple:
+    """
+    Create a line.
 
-    for i in range(0, thickness):
+    Args:
+        img : np.ndarray
+            image on which we will add line
+        a : int
+            coordinate of the pixel by rho on the rrt picture
+        b : int
+            coordinate of the pixel by theta on the rrt picture
 
-        x_i = np.arange(0, im_len, 1)
-        y_i = k * x_i + b + i
-        points = [(x_i[j], y_i[j]) for j in range(im_len)]
-        filtered_points = np.array(list(filter(lambda x: (x[1] >= 0) * (x[1] < im_len), points)))
-        if (filtered_points.shape[0] != 0):
-            x_i = filtered_points[:, 0]
-            y_i = filtered_points[:, 1]
-            x = np.hstack([x, x_i])
-            y = np.hstack([y, y_i])
-    return x, y
+    Returns:
+        x_points, y_points : tuple[list, list]
+            two lists of coordinates of pixels on the line
+    """
+    d = (np.cos(b * np.pi), np.sin(b * np.pi))
+    length = (img.shape[0] ** 2 + img.shape[1] ** 2) ** 0.5
+    r = 2 * length * a
+    px = np.linspace(-d[0] * length, d[0] * length, int(4 * length), endpoint=False).astype(int)
+    py = np.linspace(-d[1] * length, d[1] * length, int(4 * length), endpoint=False).astype(int)
+    px += int(-r * d[1])
+    py += int(r * d[0])
+
+    x_points = []
+    y_points = []
+    for x, y in zip(px, py):
+        if (0 <= x < img.shape[0]) & (0 <= y < img.shape[1]):
+            x_points.append(x)
+            y_points.append(y)
+
+    return x_points, y_points
 
 
-def generate_line_points_angle(im_len, r, theta, thickness=1):
-    x = np.array([], 'int64')
-    y = np.array([], 'int64')
-    x0 = y0 = im_len // 2
+def revert_radon(img: np.ndarray, rrt: np.ndarray) -> None:
+    """
+    On the initial picture add lines got by random radon transformation.
 
-    for i in range(0, thickness):
-        x_i = np.array([])
-        y_i = np.array([])
-        if (abs(theta - np.pi / 2) < 1e-4):
-            x_i = np.array([x0 + i] * im_len)
-            y_i = np.arange(0, im_len, 1)
-            x = np.hstack([x, x_i])
-            y = np.hstack([y, y_i])
-        else:
-            x_i = np.arange(0, im_len, 1)
-            y_i = np.array(y0 + r / (math.cos(theta)) + (x_i - x0) * math.tan(theta)).astype('int') + i
-            points = [(x_i[j], y_i[j]) for j in range(im_len)]
-            filtered_points = np.array(list(filter(lambda pixel: (pixel[1] >= 0) * (pixel[1] < im_len), points)))
-            if (filtered_points.shape[0] != 0):
-                x_i = filtered_points[:, 0]
-                y_i = filtered_points[:, 1]
-                x = np.hstack([x, x_i])
-                y = np.hstack([y, y_i])
-    return x, y
+    Args:
+        img : np.ndarray
+            the initial image
+        rrt : np.ndarray
+            the random radon transformation picture
+    """
+    sh = rrt.shape
+    for x in range(sh[0]):
+        for y in range(sh[1]):
+            if rrt[x, y] > 0.5:
+                y_points, x_points = create_line(img, x / sh[0] - 0.5, y / sh[1] - 0.5)
+                cv.line(img, (x_points[0], y_points[0]), (x_points[-1], y_points[-1]), (0, 0, 255), 1)
 
+
+def visualisation(img: np.ndarray, rrt: np.ndarray, name: str) -> None:
+    """
+    Save files with pictures of initial picture, rrt picture and visualized lines got from rrt.
+
+    Args:
+        img : np.ndarray
+            initial image
+        rrt : np.ndarray
+            random radon transformation picture
+        name : str
+            specific name of the file
+
+    """
+    cv.imwrite("pics/initial_pic_" + name + ".png", img)
+    cv.imwrite("pics/rrt_" + name + ".png", 255 - rrt)
+    filtered_rrt = (rrt > 100).astype(int) * 255
+    img_after = cv.imread("pics/initial_pic_" + name + ".png")
+    revert_radon(img_after, filtered_rrt)
+    cv.imwrite("pics/result_" + name + ".png", img_after)

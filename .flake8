@@ -1,0 +1,8 @@
+[flake8]
+select = ANN,B,B9,BLK,C,D,E,F,I,S,W
+docstring-convention = google
+application-import-names = random_radon_transformation
+ignore = E203,E501,W503,D212,BLK100,S311,I100,B007,B905,B008,DAR203
+max-line-length = 120
+max-complexity = 10
+per-file-ignores = tests/*:S101,noxfile.py:ANN401
