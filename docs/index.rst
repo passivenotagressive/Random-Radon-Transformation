@@ -26,14 +26,15 @@ Radon Radon Transformation usage looks like:
 
    $ poetry run random-radon-transformation [OPTIONS]
 
-.. option:: -s <PATH>
+.. option::  <PATH>
 
     Path to the source image for the transformation. Pay attention that it should be a file.
 
-.. option:: -o <PATH>
+.. option::  <PATH>
 
    Path where output will be written. Pay attention that it should be a directory.
 
+Mind the right order.
 
 Testing
 ------------

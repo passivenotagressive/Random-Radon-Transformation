@@ -1,24 +1,30 @@
+"""Utils for testing."""
+
 import numpy as np
+
 import math
-def generate_line_points(im_len, k, b, thickness=1):
-    x = np.array([], 'int64')
-    y = np.array([], 'int64')
-
-    for i in range(0, thickness):
-
-        x_i = np.arange(0, im_len, 1)
-        y_i = k * x_i + b + i
-        points = [(x_i[j], y_i[j]) for j in range(im_len)]
-        filtered_points = np.array(list(filter(lambda x: (x[1] >= 0) * (x[1] < im_len), points)))
-        if (filtered_points.shape[0] != 0):
-            x_i = filtered_points[:, 0]
-            y_i = filtered_points[:, 1]
-            x = np.hstack([x, x_i])
-            y = np.hstack([y, y_i])
-    return x, y
 
 
-def generate_line_points_angle(im_length, im_hight, r, theta, thickness=1):
+def generate_line_points_angle(im_length: int, im_hight: int, r: float , theta: float, thickness: int = 1) -> tuple:
+    """
+    Generate points on the line inside picture by rho and theta.
+
+    Arg:
+        im_length : int
+            length of the picture
+        im_hight : int
+            hight og the picture
+        r : float
+            rho
+        theta : float
+            angle
+        thickness : int
+            thickness of the line in pixles
+
+    Returns:
+        x, y : tuple
+            tuple of arrays of points
+    """
     x = np.array([], 'int64')
     y = np.array([], 'int64')
     x0 = im_length // 2
@@ -45,23 +51,79 @@ def generate_line_points_angle(im_length, im_hight, r, theta, thickness=1):
     return x, y
 
 
-def random_img_one_line(im_length, im_hight):
-    img = np.zeros((im_length, im_hight), dtype=np.uint8)
-    max_rho = (im_length ** 2 + im_hight ** 2) ** 0.5
-    rho = (np.random.random() - 0.5) * max_rho
-    theta = np.random.random() * np.pi
-    x_points, y_points = generate_line_points_angle(im_length, im_hight, rho, theta, 1)
+def generate_one_line(im_length: int, im_height: int, rho: float, theta: float, thickness: int = 2) -> np.ndarray:
+    """
+    Generate one line on the plot of given size and with given rho and theta.
+
+    Arg:
+        im_length : int
+            length of the picture
+        im_height : int
+            height of the picture
+        rho : float
+        theta : float
+        thickness : int
+            in pixels
+
+    Returns:
+          img : np.ndarray
+            image with one line
+    """
+    x_points, y_points = generate_line_points_angle(im_length, im_height, rho, theta, thickness)
+    img = np.zeros((im_length, im_height), dtype=np.uint8)
     img[x_points, y_points] = 255
     img = 255 - img
     return img
 
-def check_identical(list_1, list_2):
-    return all(x == y for x, y in zip(list_1, list_2))
 
-def generate_one_line(im_length, im_hight, rho, theta, thickness=2):
-    """Generate one line on the plot of given size and with given rho and theta """
-    x_points, y_points = generate_line_points_angle(im_length, im_hight, rho, theta, thickness)
-    img = np.zeros((im_length, im_hight), dtype=np.uint8)
-    img[x_points, y_points] = 255
+def generate_n_lines(im_length: int, im_height: int, rhos: list, thetas: list, thickness: int = 2) -> np.ndarray:
+    """
+    Generate n lines on the plot of given size and with given rhos and thetas.
+
+    Arg:
+         im_length : int
+            length of the picture
+        im_height : int
+            height of the picture
+        rhos : list
+            rhos for all the lines
+        thetas : list
+            thetas for all the lines
+        thickness : int
+            in pixels
+
+    Returns:
+        img : np.ndarray
+            image with two lines
+
+    """
+    n = len(rhos)
+    img = np.zeros((im_length, im_height), dtype=np.uint8)
+    for i in range(n):
+        x_points, y_points = generate_line_points_angle(im_length, im_height, rhos[i], thetas[i], thickness)
+        img[x_points, y_points] = 255
     img = 255 - img
     return img
+
+
+def add_noise(img: np.ndarray, level: int, rigidity: int) -> np.ndarray:
+    """
+    Adds noise on the given image.
+
+    Arg:
+        img : np.ndarray
+            initial image
+        level : int
+            quality of the noise
+        rigidity : int
+            quantity of the noise
+
+    Returns:
+        ret : np.ndarray
+            noised image
+    """
+    ret = np.copy(img)
+    for i in range(level):
+        i, j = np.random.randint(0, ret.shape[0], 2)
+        ret[i][j] = max(0, ret[i][j] - rigidity)
+    return ret
