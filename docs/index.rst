@@ -1,6 +1,11 @@
 The Radon Random Transformation Project
-
 ==============================
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   reference
 
 The command-line interface runs Random Radon Transform on any .png images.
 
