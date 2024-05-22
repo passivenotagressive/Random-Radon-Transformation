@@ -29,29 +29,29 @@ def test_one_line():
     """Test an image with one line."""
     img = utils.random_img_one_line(244, 244)
     rrt = random_radon_transform.transform(img)
-    random_radon_transform.visualisation(img, rrt, 'one_line')
+    random_radon_transform.visualisation(img, rrt, 'one_line', 'pics/test')
 
 def test_horizontal():
     """Test an image with horizontal line."""
     img = utils.generate_one_line(244, 244, 10, np.pi / 2)
     rrt = random_radon_transform.transform(img)
-    random_radon_transform.visualisation(img, rrt, 'horizontal')
+    random_radon_transform.visualisation(img, rrt, 'horizontal', 'pics/test')
 
 def test_vertical():
     """Test an image with vertical line."""
     img = utils.generate_one_line(244, 244, 10, 0)
     rrt = random_radon_transform.transform(img)
-    random_radon_transform.visualisation(img, rrt, 'vertical')
+    random_radon_transform.visualisation(img, rrt, 'vertical', 'pics/test')
 
 def test_positive():
     """Test an image with a line with positive decline."""
     img = utils.generate_one_line(244, 244, 10, -np.pi / 4)
     rrt = random_radon_transform.transform(img)
-    random_radon_transform.visualisation(img, rrt, 'positive')
+    random_radon_transform.visualisation(img, rrt, 'positive', 'pics/test')
 
 def test_negative():
     """Test an image with a line with negative decline."""
     img = utils.generate_one_line(244, 244, 10, np.pi / 3)
     rrt = random_radon_transform.transform(img)
-    random_radon_transform.visualisation(img, rrt, 'negative')
+    random_radon_transform.visualisation(img, rrt, 'negative', 'pics/test')
 

@@ -1,3 +1,5 @@
+"""Sphinx configuration."""
+
 project = "Random Radon Transform"
 author = "Kuznetsova Alina"
 extensions = [

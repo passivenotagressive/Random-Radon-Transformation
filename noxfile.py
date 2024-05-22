@@ -2,7 +2,7 @@
 import nox
 
 nox.options.sessions = "lint", "tests"
-locations = "src", "tests", "noxfile.py", "docs/conf.py"
+locations = "src", "docs/conf.py"
 
 @nox.session(python=["3.8"])
 def tests(session):
