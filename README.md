@@ -6,18 +6,10 @@ Usage
 ------------
 
 Radon Radon Transformation usage looks like:
-
-.. code-block:: console
-
+```
    $ poetry run random-radon-transformation [OPTIONS]
-
-.. option::  <PATH>
-
-    Path to the source image for the transformation. Pay attention that it should be a file.
-
-.. option::  <PATH>
-
-   Path where output will be written. Pay attention that it should be a directory.
+```
+Where `[OPTIONS]` are `source` and `output` -- path to the source image for the transformation, pay attention that it should be a file, and path where output will be written, pay attention that it should be a directory.
 
 Mind the right order.
 
@@ -25,9 +17,9 @@ Testing
 ------------
 To run tests use:
 
-.. code-block:: console
-
+```
    $ nox -r
+```
 
 ## Examples
 
