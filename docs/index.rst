@@ -1,11 +1,9 @@
 The Radon Random Transformation Project
-==============================
+=========================================
 
 .. toctree::
    :hidden:
    :maxdepth: 1
-
-   reference
 
 The command-line interface runs Random Radon Transform on any .png images.
 
@@ -20,7 +18,7 @@ repository and use poetry:
    $ pip install poetry
 
 Usage
-----
+------------
 
 Radon Radon Transformation usage looks like:
 
@@ -38,7 +36,7 @@ Path to the source image for the transformation.
 
 
 Testing
-----
+------------
 To run tests use:
 
 .. code-block:: console
